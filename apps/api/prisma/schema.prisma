@@ -1,0 +1,95 @@
+generator client {
+  provider     = "prisma-client"
+  output       = "../src/generated/prisma"
+  moduleFormat = "cjs"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// --------------------------------------------------
+// ENUMS
+// --------------------------------------------------
+enum UserRole {
+  ADMIN
+  STAFF
+
+  @@map("user_role")
+}
+
+// --------------------------------------------------
+// USER MANAGEMENT
+// --------------------------------------------------
+model User {
+  id           String   @id @default(uuid()) @db.Uuid
+  fullName     String   @map("full_name") @db.VarChar(150)
+  email        String   @unique @db.VarChar(254)
+  passwordHash String   @map("password_hash")
+  role         UserRole @default(STAFF)
+  isActive     Boolean  @default(true) @map("is_active")
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  @@map("users")
+}
+
+// --------------------------------------------------
+// PRODUCT CATEGORY
+// --------------------------------------------------
+model ProductCategory {
+  id          String  @id @default(uuid()) @db.Uuid
+  name        String  @unique @db.VarChar(150)
+  description String? @db.Text
+  isActive    Boolean @default(true) @map("is_active")
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  products Product[]
+
+  @@map("product_categories")
+}
+
+// --------------------------------------------------
+// PRODUCT CATALOG
+// --------------------------------------------------
+model Product {
+  id           String  @id @default(uuid()) @db.Uuid
+  sku          String  @unique @db.VarChar(64)
+  name         String  @db.VarChar(200)
+  description  String? @db.Text
+  sellingPrice Decimal @map("selling_price") @db.Decimal(12, 2)
+
+  categoryId String @map("category_id") @db.Uuid
+
+  archivedAt DateTime? @map("archived_at") @db.Timestamptz(3)
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  category ProductCategory @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+
+  inventoryBalance InventoryBalance?
+
+  @@index([categoryId])
+  @@map("products")
+}
+
+// --------------------------------------------------
+// INVENTORY BALANCE
+// --------------------------------------------------
+model InventoryBalance {
+  productId String @id @map("product_id") @db.Uuid
+
+  quantityOnHand   Int @default(0) @map("quantity_on_hand")
+  quantityReserved Int @default(0) @map("quantity_reserved")
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  product Product @relation(fields: [productId], references: [id], onDelete: Restrict)
+
+  @@map("inventory_balances")
+}
