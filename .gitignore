@@ -1,24 +1,26 @@
 # Dependencies
 node_modules/
 
-# Environment variables
+# Environment files
 .env
 .env.*
 !.env.example
 
 # Build outputs
-.next/
 dist/
 build/
+.next/
 coverage/
+
+# TypeScript incremental cache
+*.tsbuildinfo
+
+# Generated Prisma Client
+apps/api/src/generated/prisma/
 
 # Logs
 *.log
 
-# OS and IDE
+# Operating system
 .DS_Store
 Thumbs.db
-.vscode/
-
-# Temporary files
-*.tmp
