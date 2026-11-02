@@ -1,0 +1,17 @@
+{
+  "extends": "../tsconfig.json",
+  "compilerOptions": {
+    "rootDir": "..",
+    "outDir": "../dist-e2e",
+    "incremental": false,
+    "noEmit": true
+  },
+  "include": [
+    "../src/**/*.ts",
+    "./**/*.ts"
+  ],
+  "exclude": [
+    "../node_modules",
+    "../dist"
+  ]
+}
