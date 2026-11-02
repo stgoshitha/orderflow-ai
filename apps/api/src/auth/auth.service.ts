@@ -29,7 +29,7 @@ export class AuthService {
       where: { email: normalizedEmail },
       select: {
         id: true,
-        name: true,
+        fullName: true,
         email: true,
         passwordHash: true,
         role: true,
@@ -71,7 +71,7 @@ export class AuthService {
       expiresAt,
       user: {
         id: user.id,
-        name: user.name,
+        name: user.fullName,
         email: user.email,
         role: user.role,
       },
@@ -94,7 +94,7 @@ export class AuthService {
         user: {
           select: {
             id: true,
-            name: true,
+            fullName: true,
             email: true,
             role: true,
             isActive: true,
@@ -118,7 +118,7 @@ export class AuthService {
       sessionId: session.id,
       user: {
         id: session.user.id,
-        name: session.user.name,
+        name: session.user.fullName,
         email: session.user.email,
         role: session.user.role,
       },
