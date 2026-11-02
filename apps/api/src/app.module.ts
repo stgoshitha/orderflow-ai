@@ -1,5 +1,10 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
+import { APP_GUARD } from '@nestjs/core';
+import {
+  ThrottlerGuard,
+  ThrottlerModule,
+} from '@nestjs/throttler';
 import { z } from 'zod';
 
 import { AppController } from './app.controller';
@@ -8,6 +13,7 @@ import { PrismaModule } from './prisma/prisma.module';
 import { HealthModule } from './health/health.module';
 import { PasswordModule } from './auth/password.module';
 import { AuthModule } from './auth/auth.module';
+import { TrustedOriginGuard } from './auth/guards/trusted-origin.guard';
 
 @Module({
   imports: [
@@ -26,14 +32,32 @@ import { AuthModule } from './auth/auth.module';
           .default(4000),
 
         DATABASE_URL: z.url(),
+
+        FRONTEND_ORIGIN: z.url(),
       }),
     }),
+    ThrottlerModule.forRoot([
+      {
+        ttl: 60_000,
+        limit: 100,
+      },
+    ]),
     PrismaModule,
     HealthModule,
     PasswordModule,
     AuthModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [
+    AppService,
+    {
+      provide: APP_GUARD,
+      useClass: TrustedOriginGuard,
+    },
+    {
+      provide: APP_GUARD,
+      useClass: ThrottlerGuard,
+    },
+  ],
 })
-export class AppModule {}
+export class AppModule { }
