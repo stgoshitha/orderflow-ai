@@ -251,4 +251,188 @@ describe('Product Categories API (E2E)', () => {
       .set('Cookie', adminCookie)
       .expect(400);
   });
+
+
+  it('allows Admin to list inactive categories', async () => {
+    const response = await request(app.getHttpServer())
+      .get('/product-categories?status=inactive')
+      .set('Cookie', adminCookie)
+      .expect(200);
+
+    expect(Array.isArray(response.body.data)).toBe(true);
+
+    expect(
+      response.body.data.every(
+        (category: { isActive: boolean }) =>
+          category.isActive === false,
+      ),
+    ).toBe(true);
+
+    const inactiveCount = await prisma.productCategory.count({
+      where: { isActive: false },
+    });
+
+    expect(response.body.meta.total).toBe(inactiveCount);
+    expect(inactiveCount).toBeGreaterThan(0);
+  });
+
+  it('allows Admin to list all categories', async () => {
+    const response = await request(app.getHttpServer())
+      .get('/product-categories?status=all')
+      .set('Cookie', adminCookie)
+      .expect(200);
+
+    const total = await prisma.productCategory.count();
+
+    expect(response.body.meta.total).toBe(total);
+    expect(Array.isArray(response.body.data)).toBe(true);
+  });
+
+  it('allows Staff to explicitly list active categories', async () => {
+    const response = await request(app.getHttpServer())
+      .get('/product-categories?status=active')
+      .set('Cookie', staffCookie)
+      .expect(200);
+
+    expect(
+      response.body.data.every(
+        (category: { isActive: boolean }) =>
+          category.isActive === true,
+      ),
+    ).toBe(true);
+  });
+
+  it('denies Staff access to inactive categories', async () => {
+    await request(app.getHttpServer())
+      .get('/product-categories?status=inactive')
+      .set('Cookie', staffCookie)
+      .expect(403);
+  });
+
+  it('denies Staff access to all-category listing', async () => {
+    await request(app.getHttpServer())
+      .get('/product-categories?status=all')
+      .set('Cookie', staffCookie)
+      .expect(403);
+  });
+
+  it('rejects invalid category status filters', async () => {
+    await request(app.getHttpServer())
+      .get('/product-categories?status=deleted')
+      .set('Cookie', adminCookie)
+      .expect(400);
+  });
+
+
+  it('allows Admin to deactivate a category', async () => {
+    const category = await prisma.productCategory.create({
+      data: {
+        name: `Deactivate-${randomUUID()}`,
+      },
+    });
+
+    categoryIds.push(category.id);
+
+    const endpoint =
+      `/product-categories/${category.id}/deactivate`;
+
+    const first = await request(app.getHttpServer())
+      .patch(endpoint)
+      .set('Origin', origin)
+      .set('Cookie', adminCookie)
+      .expect(200);
+
+    expect(first.body.isActive).toBe(false);
+
+    const second = await request(app.getHttpServer())
+      .patch(endpoint)
+      .set('Origin', origin)
+      .set('Cookie', adminCookie)
+      .expect(200);
+
+    expect(second.body.isActive).toBe(false);
+    expect(second.body.updatedAt).toBe(first.body.updatedAt);
+
+    const saved = await prisma.productCategory.findUnique({
+      where: { id: category.id },
+    });
+
+    expect(saved?.isActive).toBe(false);
+  });
+
+  it('allows Admin to reactivate an inactive category', async () => {
+    const category = await prisma.productCategory.create({
+      data: {
+        name: `Reactivate-${randomUUID()}`,
+        isActive: false,
+      },
+    });
+
+    categoryIds.push(category.id);
+
+    const activeCountBefore =
+      await prisma.productCategory.count({
+        where: { isActive: true },
+      });
+
+    const endpoint =
+      `/product-categories/${category.id}/activate`;
+
+    const first = await request(app.getHttpServer())
+      .patch(endpoint)
+      .set('Origin', origin)
+      .set('Cookie', adminCookie)
+      .expect(200);
+
+    expect(first.body.isActive).toBe(true);
+
+    // Repeating activation should not change the timestamp.
+    const second = await request(app.getHttpServer())
+      .patch(endpoint)
+      .set('Origin', origin)
+      .set('Cookie', adminCookie)
+      .expect(200);
+
+    expect(second.body.isActive).toBe(true);
+    expect(second.body.updatedAt).toBe(first.body.updatedAt);
+
+    const activeList = await request(app.getHttpServer())
+      .get('/product-categories?status=active')
+      .set('Cookie', adminCookie)
+      .expect(200);
+
+    expect(activeList.body.meta.total).toBe(
+      activeCountBefore + 1,
+    );
+
+    const saved = await prisma.productCategory.findUnique({
+      where: { id: category.id },
+    });
+
+    expect(saved?.isActive).toBe(true);
+  });
+
+  it('denies Staff category reactivation', async () => {
+    const category = await prisma.productCategory.create({
+      data: {
+        name: `Staff-Reactivation-${randomUUID()}`,
+        isActive: false,
+      },
+    });
+
+    categoryIds.push(category.id);
+
+    await request(app.getHttpServer())
+      .patch(`/product-categories/${category.id}/activate`)
+      .set('Origin', origin)
+      .set('Cookie', staffCookie)
+      .expect(403);
+
+    const saved = await prisma.productCategory.findUnique({
+      where: { id: category.id },
+    });
+
+    expect(saved?.isActive).toBe(false);
+  });
+
 });
