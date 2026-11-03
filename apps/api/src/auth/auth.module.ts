@@ -5,11 +5,12 @@ import { PasswordModule } from './password.module';
 import { AuthService } from './auth.service';
 import { SessionAuthGuard } from './guards/session-auth.guard';
 import { AuthController } from './auth.controller';
+import { RolesGuard } from './guards/roles.guard';
 
 @Module({
   imports: [PrismaModule, PasswordModule],
-  providers: [AuthService, SessionAuthGuard],
+  providers: [AuthService, SessionAuthGuard, RolesGuard],
   controllers: [AuthController],
-  exports: [AuthService, SessionAuthGuard],
+  exports: [AuthService, SessionAuthGuard, RolesGuard],
 })
 export class AuthModule {}
