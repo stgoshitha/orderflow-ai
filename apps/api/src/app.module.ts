@@ -15,6 +15,7 @@ import { PasswordModule } from './auth/password.module';
 import { AuthModule } from './auth/auth.module';
 import { TrustedOriginGuard } from './auth/guards/trusted-origin.guard';
 import { ProductCategoriesModule } from './product-categories/product-categories.module';
+import { ProductsModule } from './products/products.module';
 
 @Module({
   imports: [
@@ -48,6 +49,7 @@ import { ProductCategoriesModule } from './product-categories/product-categories
     PasswordModule,
     AuthModule,
     ProductCategoriesModule,
+    ProductsModule,
   ],
   controllers: [AppController],
   providers: [
