@@ -1,7 +1,4 @@
-import {
-  ValidationPipe,
-  type INestApplication,
-} from '@nestjs/common';
+import type { INestApplication } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import {
   randomUUID,
