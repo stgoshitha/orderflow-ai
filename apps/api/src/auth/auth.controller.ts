@@ -8,6 +8,7 @@ import {
   Req,
   Res,
   UseGuards,
+  Header,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Throttle } from '@nestjs/throttler';
@@ -39,6 +40,7 @@ export class AuthController {
 
   @Post('login')
   @HttpCode(HttpStatus.OK)
+  @Header('Cache-Control', 'no-store')
   @Throttle({
     default: {
       limit: 5,
@@ -73,6 +75,7 @@ export class AuthController {
   }
 
   @Get('me')
+  @Header('Cache-Control', 'no-store')
   @UseGuards(SessionAuthGuard)
   getCurrentUser(
     @Req() request: AuthenticatedRequest,
@@ -84,6 +87,7 @@ export class AuthController {
 
   @Post('logout')
   @HttpCode(HttpStatus.OK)
+  @Header('Cache-Control', 'no-store')
   @UseGuards(SessionAuthGuard)
   async logout(
     @Req() request: AuthenticatedRequest,
