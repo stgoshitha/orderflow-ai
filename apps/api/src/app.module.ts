@@ -14,6 +14,7 @@ import { HealthModule } from './health/health.module';
 import { PasswordModule } from './auth/password.module';
 import { AuthModule } from './auth/auth.module';
 import { TrustedOriginGuard } from './auth/guards/trusted-origin.guard';
+import { ProductCategoriesModule } from './product-categories/product-categories.module';
 
 @Module({
   imports: [
@@ -46,6 +47,7 @@ import { TrustedOriginGuard } from './auth/guards/trusted-origin.guard';
     HealthModule,
     PasswordModule,
     AuthModule,
+    ProductCategoriesModule,
   ],
   controllers: [AppController],
   providers: [
